@@ -109,9 +109,9 @@
       <div class="acard-title">Monto bruto a solicitar</div>
       <input class="big-input" id="monto" type="text" value="3.725.000" oninput="fmtMonto(this);renderAll()"/>
       <div class="com-row">
-        <button class="com-btn active" data-v="0.08" onclick="setComision(this)">8%</button>
-        <button class="com-btn" data-v="0.09" onclick="setComision(this)">9%</button>
-        <button class="com-btn" data-v="0.10" onclick="setComision(this)">10%</button>
+        <button class="com-btn active" data-v="0.06" onclick="setComision(this)">6%</button>
+        <button class="com-btn" data-v="0.07" onclick="setComision(this)">7%</button>
+        <button class="com-btn" data-v="0.08" onclick="setComision(this)">8%</button>
       </div>
     </div>
     <div class="acard">
@@ -157,7 +157,7 @@ const LINES = [
     cohef:{12:126.055,18:98.832,24:86.091,36:74.912,48:70.626,60:68.844} },
 ];
 
-let comision = 0.08, bruto = 0;
+let comision = 0.06, bruto = 0;
 
 function parseNum(s){ return parseFloat((s||'').replace(/\./g,'').replace(',','.')) || 0; }
 function fmtPeso(n){ return '$\u202f' + Math.round(n).toLocaleString('es-AR'); }
