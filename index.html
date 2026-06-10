@@ -240,39 +240,29 @@
         </div>
 
         <div class="cotiz-field">
-          <label class="cotiz-label">Monto solicitado (opcional)</label>
-          <input class="cotiz-text-input" id="cq-monto" type="text" placeholder="Ej: 3.725.000" oninput="fmtCotizMonto(this);renderCotizPreview()"/>
+          <label class="cotiz-label">Monto base (rellena todos)</label>
+          <div style="display:flex;gap:8px">
+            <input class="cotiz-text-input" id="cq-monto" type="text" placeholder="Ej: 6.000.000" oninput="fmtCotizMonto(this)" style="flex:1"/>
+            <button class="cotiz-btn cotiz-btn-secondary" style="flex:none;padding:9px 14px;font-size:12px" onclick="rellenarMontos()">Aplicar a todos</button>
+          </div>
         </div>
 
         <div class="cotiz-divider"></div>
 
         <div class="cotiz-field">
-          <label class="cotiz-label">Cuotas mensuales ($)</label>
-          <div class="cotiz-cuotas-grid">
-            <div class="cotiz-cuota-field">
-              <label class="cotiz-cuota-label">12 meses</label>
-              <input class="cotiz-cuota-input" id="cq-12" type="text" placeholder="0" oninput="fmtCuotaInput(this);renderCotizPreview()"/>
+          <label class="cotiz-label">Cuotas y montos por plazo</label>
+          <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:6px 8px;align-items:center;margin-top:4px">
+            <div style="font-size:9px;font-weight:700;color:#bbb;letter-spacing:.06em;text-transform:uppercase"></div>
+            <div style="font-size:9px;font-weight:700;color:#bbb;letter-spacing:.06em;text-transform:uppercase;text-align:center">MONTO ($)</div>
+            <div style="font-size:9px;font-weight:700;color:#bbb;letter-spacing:.06em;text-transform:uppercase;text-align:center">CUOTA ($)</div>
+            ${[12,18,24,36,48,60].map(p=>`
+            <div style="font-size:10px;font-weight:700;color:#888;white-space:nowrap">${p} meses</div>
+            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px">
+              <input class="cotiz-cuota-input" id="cq-m${p}" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/>
             </div>
-            <div class="cotiz-cuota-field">
-              <label class="cotiz-cuota-label">18 meses</label>
-              <input class="cotiz-cuota-input" id="cq-18" type="text" placeholder="0" oninput="fmtCuotaInput(this);renderCotizPreview()"/>
-            </div>
-            <div class="cotiz-cuota-field">
-              <label class="cotiz-cuota-label">24 meses</label>
-              <input class="cotiz-cuota-input" id="cq-24" type="text" placeholder="0" oninput="fmtCuotaInput(this);renderCotizPreview()"/>
-            </div>
-            <div class="cotiz-cuota-field">
-              <label class="cotiz-cuota-label">36 meses</label>
-              <input class="cotiz-cuota-input" id="cq-36" type="text" placeholder="0" oninput="fmtCuotaInput(this);renderCotizPreview()"/>
-            </div>
-            <div class="cotiz-cuota-field">
-              <label class="cotiz-cuota-label">48 meses</label>
-              <input class="cotiz-cuota-input" id="cq-48" type="text" placeholder="0" oninput="fmtCuotaInput(this);renderCotizPreview()"/>
-            </div>
-            <div class="cotiz-cuota-field">
-              <label class="cotiz-cuota-label">60 meses</label>
-              <input class="cotiz-cuota-input" id="cq-60" type="text" placeholder="0" oninput="fmtCuotaInput(this);renderCotizPreview()"/>
-            </div>
+            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px">
+              <input class="cotiz-cuota-input" id="cq-${p}" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/>
+            </div>`).join('')}
           </div>
         </div>
 
@@ -427,14 +417,24 @@ function renderClient(){
 function getCotizData(){
   const lineaId = document.getElementById('cq-linea').value;
   const linea = LINES.find(l=>l.id===lineaId) || LINES[0];
-  const montoRaw = document.getElementById('cq-monto').value;
-  const monto = parseNum(montoRaw);
-  const cuotas = {};
+  const cuotas = {}, montos = {};
   PLAZOS.forEach(p=>{
-    const v = parseNum(document.getElementById('cq-'+p).value);
-    cuotas[p] = v > 0 ? v : null;
+    const c = parseNum(document.getElementById('cq-'+p).value);
+    const m = parseNum(document.getElementById('cq-m'+p).value);
+    cuotas[p] = c > 0 ? c : null;
+    montos[p] = m > 0 ? m : null;
   });
-  return { linea, monto, cuotas };
+  return { linea, cuotas, montos };
+}
+
+function rellenarMontos(){
+  const base = parseNum(document.getElementById('cq-monto').value);
+  if(!base) return;
+  PLAZOS.forEach(p=>{
+    const el = document.getElementById('cq-m'+p);
+    el.value = base.toLocaleString('es-AR');
+  });
+  renderCotizPreview();
 }
 
 function hasAnyCuota(cuotas){
@@ -442,7 +442,7 @@ function hasAnyCuota(cuotas){
 }
 
 function renderCotizPreview(){
-  const { linea, monto, cuotas } = getCotizData();
+  const { linea, cuotas, montos } = getCotizData();
   const container = document.getElementById('cotiz-card-container');
   const emptyMsg  = document.getElementById('cotiz-empty-msg');
 
@@ -455,7 +455,8 @@ function renderCotizPreview(){
   container.style.display = 'block';
 
   const today = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const tieneNeto = monto > 0;
+  const hayMontos = PLAZOS.some(p => montos[p] !== null);
+  const cols = hayMontos ? '1fr 1fr 1fr' : '1fr 1fr';
 
   container.innerHTML = `
     <div class="cotiz-preview-card" id="cotiz-printable">
@@ -468,29 +469,20 @@ function renderCotizPreview(){
         <div class="cq-badge-label">Línea de crédito</div>
         <div class="cq-linea-badge badge-${linea.type}">${linea.sub}</div>
       </div>
-      ${tieneNeto ? `
-      <div class="cq-montos-row">
-        <div class="cq-monto-field">
-          <div class="cq-monto-label">Monto a solicitar</div>
-          <div class="cq-monto-val">${fmtPeso(monto)}</div>
-        </div>
-        <div class="cq-monto-field">
-          <div class="cq-monto-label">Lo que recibe el cliente</div>
-          <div class="cq-monto-val">${fmtPeso(monto * (1 - comision))}</div>
-        </div>
-      </div>` : ''}
       <div class="cq-note ${linea.type}">
         ${linea.type==='uva'
           ? '⚠ Las cuotas UVA se ajustan por inflación (CER). Los valores son cuotas iniciales estimadas. Plazo de 12 a 60 meses se corrobora al momento de solicitar el crédito.'
           : 'Plazo de 12 a 60 meses se corrobora al momento de solicitar el crédito la disponibilidad máxima del cliente determinado por valor cuota e ingresos.'}
       </div>
-      <div class="cq-table-head">
-        <span>PLAZO EN MESES</span>
+      <div class="cq-table-head" style="grid-template-columns:${cols}">
+        <span>PLAZO</span>
+        ${hayMontos ? '<span>MONTO A SOLICITAR</span>' : ''}
         <span>${linea.type==='uva'?'CUOTA INICIAL EST.':'MONTO CUOTA APROX.'}</span>
       </div>
       ${PLAZOS.filter(p=>cuotas[p]).map(p=>`
-      <div class="cq-row">
-        <span class="cq-plazo">${p}</span>
+      <div class="cq-row" style="grid-template-columns:${cols}">
+        <span class="cq-plazo">${p} meses</span>
+        ${hayMontos ? `<span class="${montos[p]?'cq-cuota-val':'cq-cuota-val empty'}">${montos[p]?fmtPeso(montos[p]):'—'}</span>` : ''}
         <span class="cq-cuota-val">${fmtPeso(cuotas[p])}</span>
       </div>`).join('')}
       <div class="cq-footer">
@@ -502,7 +494,10 @@ function renderCotizPreview(){
 
 function limpiarCotiz(){
   document.getElementById('cq-monto').value = '';
-  PLAZOS.forEach(p=>{ document.getElementById('cq-'+p).value=''; });
+  PLAZOS.forEach(p=>{
+    document.getElementById('cq-'+p).value='';
+    document.getElementById('cq-m'+p).value='';
+  });
   renderCotizPreview();
 }
 
@@ -525,20 +520,24 @@ function imprimirCotiz(){
 }
 
 function exportarExcel(){
-  const { linea, monto, cuotas } = getCotizData();
+  const { linea, cuotas, montos } = getCotizData();
   if(!hasAnyCuota(cuotas)){ alert('Completá al menos una cuota para exportar.'); return; }
   const today = new Date().toLocaleDateString('es-AR');
+  const hayMontos = PLAZOS.some(p => montos[p] !== null);
 
   let rows = [
     ['BANCO GALICIA - COTIZACIÓN PRENDARIO'],
     ['Línea:', linea.name + ' (' + linea.tnaLabel + ')'],
     ['Fecha:', today],
+    [],
+    hayMontos ? ['Plazo (meses)', 'Monto a solicitar', 'Cuota mensual ($)'] : ['Plazo (meses)', 'Cuota mensual ($)'],
   ];
-  if(monto > 0) rows.push(['Monto solicitado:', fmtPeso(monto)]);
-  rows.push([]);
-  rows.push(['Plazo (meses)', 'Cuota mensual ($)']);
-  PLAZOS.forEach(p=>{
-    rows.push([p, cuotas[p] ? Math.round(cuotas[p]).toLocaleString('es-AR') : '—']);
+  PLAZOS.filter(p=>cuotas[p]).forEach(p=>{
+    if(hayMontos){
+      rows.push([p, montos[p] ? Math.round(montos[p]).toLocaleString('es-AR') : '—', Math.round(cuotas[p]).toLocaleString('es-AR')]);
+    } else {
+      rows.push([p, Math.round(cuotas[p]).toLocaleString('es-AR')]);
+    }
   });
   rows.push([]);
   rows.push(['Valores orientativos. Sujeto a aprobación crediticia.']);
