@@ -453,8 +453,8 @@ function rellenarMontos(){
   renderCotizPreview();
 }
 
-function hasAnyCuota(cuotas){
-  return PLAZOS.some(p => cuotas[p] !== null);
+function hasAnyCuota(cuotas, montos){
+  return PLAZOS.some(p => cuotas[p] !== null || montos[p] !== null);
 }
 
 function renderCotizPreview(){
@@ -462,7 +462,7 @@ function renderCotizPreview(){
   const container = document.getElementById('cotiz-card-container');
   const emptyMsg  = document.getElementById('cotiz-empty-msg');
 
-  if(!hasAnyCuota(cuotas)){
+  if(!hasAnyCuota(cuotas, montos)){
     container.style.display = 'none';
     emptyMsg.style.display  = 'block';
     return;
@@ -473,6 +473,7 @@ function renderCotizPreview(){
   const today = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
   const hayMontos = PLAZOS.some(p => montos[p] !== null);
   const cols = hayMontos ? '1fr 1fr 1fr' : '1fr 1fr';
+  const filas = PLAZOS.filter(p => cuotas[p] !== null || montos[p] !== null);
 
   container.innerHTML = `
     <div class="cotiz-preview-card" id="cotiz-printable">
@@ -495,11 +496,11 @@ function renderCotizPreview(){
         ${hayMontos ? '<span>MONTO A SOLICITAR</span>' : ''}
         <span>${linea.type==='uva'?'CUOTA INICIAL EST.':'MONTO CUOTA APROX.'}</span>
       </div>
-      ${PLAZOS.filter(p=>cuotas[p]).map(p=>`
+      ${filas.map(p=>`
       <div class="cq-row" style="grid-template-columns:${cols}">
         <span class="cq-plazo">${p} meses</span>
-        ${hayMontos ? `<span class="${montos[p]?'cq-cuota-val':'cq-cuota-val empty'}">${montos[p]?fmtPeso(montos[p]):'—'}</span>` : ''}
-        <span class="cq-cuota-val">${fmtPeso(cuotas[p])}</span>
+        ${hayMontos ? `<span class="cq-cuota-val">${montos[p]?fmtPeso(montos[p]):'—'}</span>` : ''}
+        <span class="${cuotas[p]?'cq-cuota-val':'cq-cuota-val empty'}">${cuotas[p]?fmtPeso(cuotas[p]):'—'}</span>
       </div>`).join('')}
       <div class="cq-footer">
         <div class="cq-footer-text">Valores orientativos. Sujeto a aprobación crediticia. Simulador Galicia Prendarios.</div>
