@@ -252,17 +252,33 @@
         <div class="cotiz-field">
           <label class="cotiz-label">Cuotas y montos por plazo</label>
           <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:6px 8px;align-items:center;margin-top:4px">
-            <div style="font-size:9px;font-weight:700;color:#bbb;letter-spacing:.06em;text-transform:uppercase"></div>
+            <div></div>
             <div style="font-size:9px;font-weight:700;color:#bbb;letter-spacing:.06em;text-transform:uppercase;text-align:center">MONTO ($)</div>
             <div style="font-size:9px;font-weight:700;color:#bbb;letter-spacing:.06em;text-transform:uppercase;text-align:center">CUOTA ($)</div>
-            ${[12,18,24,36,48,60].map(p=>`
-            <div style="font-size:10px;font-weight:700;color:#888;white-space:nowrap">${p} meses</div>
-            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px">
-              <input class="cotiz-cuota-input" id="cq-m${p}" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/>
-            </div>
-            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px">
-              <input class="cotiz-cuota-input" id="cq-${p}" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/>
-            </div>`).join('')}
+
+            <div style="font-size:10px;font-weight:700;color:#888">12 meses</div>
+            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px"><input class="cotiz-cuota-input" id="cq-m12" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/></div>
+            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px"><input class="cotiz-cuota-input" id="cq-12" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/></div>
+
+            <div style="font-size:10px;font-weight:700;color:#888">18 meses</div>
+            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px"><input class="cotiz-cuota-input" id="cq-m18" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/></div>
+            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px"><input class="cotiz-cuota-input" id="cq-18" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/></div>
+
+            <div style="font-size:10px;font-weight:700;color:#888">24 meses</div>
+            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px"><input class="cotiz-cuota-input" id="cq-m24" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/></div>
+            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px"><input class="cotiz-cuota-input" id="cq-24" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/></div>
+
+            <div style="font-size:10px;font-weight:700;color:#888">36 meses</div>
+            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px"><input class="cotiz-cuota-input" id="cq-m36" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/></div>
+            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px"><input class="cotiz-cuota-input" id="cq-36" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/></div>
+
+            <div style="font-size:10px;font-weight:700;color:#888">48 meses</div>
+            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px"><input class="cotiz-cuota-input" id="cq-m48" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/></div>
+            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px"><input class="cotiz-cuota-input" id="cq-48" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/></div>
+
+            <div style="font-size:10px;font-weight:700;color:#888">60 meses</div>
+            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px"><input class="cotiz-cuota-input" id="cq-m60" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/></div>
+            <div style="background:#f7f8fa;border-radius:7px;padding:7px 9px"><input class="cotiz-cuota-input" id="cq-60" type="text" placeholder="—" oninput="fmtCuotaInput(this);renderCotizPreview()"/></div>
           </div>
         </div>
 
