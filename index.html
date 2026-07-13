@@ -150,6 +150,11 @@
   .cq-footer-text{font-size:8px;color:#bbb;text-align:center}
   .cotiz-export-row{display:flex;gap:8px;margin-top:12px;max-width:420px;margin-left:auto;margin-right:auto}
 
+  .tna-toggle{display:flex;gap:4px;align-items:center}
+  .tna-toggle-btn{padding:3px 10px;border-radius:20px;border:1.5px solid #e0e0e0;background:#fff;font-size:11px;font-weight:600;cursor:pointer;transition:.15s;color:#888}
+  .tna-toggle-btn:hover{border-color:#F05A00;color:#F05A00}
+  .tna-toggle-btn.active.tna-uva{background:#fff8e1;border-color:#e67e00;color:#e67e00}
+  .tna-toggle-btn.active.tna-fija{background:#fff0f0;border-color:#F05A00;color:#F05A00}
   .preclient-row-wrap{position:relative}
   .preclient-row-wrap .del-btn{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:#ff4444;border:none;border-radius:50%;width:18px;height:18px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;opacity:.7;transition:.15s}
   .preclient-row-wrap .del-btn:hover{opacity:1}
@@ -326,15 +331,35 @@
 const PLAZOS = [12, 18, 24, 36, 48, 60];
 
 const LINES = [
-  { id:'uva0', name:'UVA 0KM',    sub:'CUOTA UVA 0KM',    tnaLabel:'33% TNA', type:'uva',
+  { id:'uva0',  name:'UVA 0KM',      sub:'CUOTA UVA 0KM',      tnaLabel:'33% TNA', type:'uva',
     cohef:{12:102.796,18:74.835,24:61.074,36:47.742,48:41.481,60:38.029} },
-  { id:'uvau', name:'UVA Usados', sub:'CUOTA UVA USADOS',  tnaLabel:'34% TNA', type:'uva',
-    cohef:{12:103.313,18:75.461,24:61.718,36:48.428,48:42.209,60:38.797} },
-  { id:'fij0', name:'Fija 0KM',   sub:'CUOTA FIJA 0KM',   tnaLabel:'64% TNA', type:'fija',
+  { id:'uvau',  name:'UVA Usados',   sub:'CUOTA UVA USADOS',   type:'uva',
+    tnas: ['34','27'],
+    cohefMap: {
+      '34': {12:103.313,18:75.461,24:61.718,36:48.428,48:42.209,60:38.797},
+      '27': {12:98.096, 18:70.425,24:56.741,36:43.350,48:36.937,60:33.308},
+    }},
+  { id:'fij0',  name:'Fija 0KM',     sub:'CUOTA FIJA 0KM',     tnaLabel:'64% TNA', type:'fija',
     cohef:{12:122.704,18:95.327,24:82.399,36:70.857,48:66.269,60:64.258} },
-  { id:'fiju', name:'Fija Usados',sub:'CUOTA FIJA USADOS', tnaLabel:'69% TNA', type:'fija',
-    cohef:{12:126.055,18:98.832,24:86.091,36:74.912,48:70.626,60:68.844} },
+  { id:'fiju',  name:'Fija Usados',  sub:'CUOTA FIJA USADOS',  type:'fija',
+    tnas: ['69','59'],
+    cohefMap: {
+      '69': {12:126.055,18:98.832,24:86.091,36:74.912,48:70.626,60:68.844},
+      '59': {12:117.024,18:90.225,24:77.493,36:65.995,48:61.322,60:59.215},
+    }},
 ];
+
+// TNA activa para líneas con toggle
+const tnaState = { uvau: '34', fiju: '69' };
+
+function getCohef(l){ return l.cohefMap ? l.cohefMap[tnaState[l.id]] : l.cohef; }
+function getTnaLabel(l){ return l.cohefMap ? tnaState[l.id]+'% TNA' : l.tnaLabel; }
+function getSub(l){ return l.cohefMap ? l.sub+' '+tnaState[l.id]+'%' : l.sub; }
+
+function setTna(lineId, tna){
+  tnaState[lineId] = tna;
+  renderAll();
+}
 
 let comision = 0.06, bruto = 0;
 
@@ -375,22 +400,30 @@ function setComision(btn){
 }
 
 function renderGroup(lines, gridId){
-  document.getElementById(gridId).innerHTML = lines.map(l=>`
+  document.getElementById(gridId).innerHTML = lines.map(l=>{
+    const cohef = getCohef(l);
+    const tnaLabel = getTnaLabel(l);
+    const toggleHtml = l.tnas ? `
+      <div class="tna-toggle">
+        ${l.tnas.map(t=>`<button class="tna-toggle-btn tna-${l.type}${tnaState[l.id]===t?' active':''}" onclick="setTna('${l.id}','${t}')">${t}%</button>`).join('')}
+      </div>` : `<span class="lg-tna tna-${l.type}">${tnaLabel}</span>`;
+    return `
     <div class="line-group">
       <div class="line-group-head ${l.type}">
         <span class="lg-name">${l.name}</span>
-        <span class="lg-tna tna-${l.type}">${l.tnaLabel}</span>
+        ${toggleHtml}
       </div>
       <table class="rtable">
         <thead><tr><th>Plazo</th><th>Coef.</th><th>${l.type==='uva'?'Cuota inicial est.':'Cuota mensual'}</th></tr></thead>
         <tbody>${PLAZOS.map(p=>`<tr>
           <td>${p} cuotas</td>
-          <td class="cohef-td">${l.cohef[p]?l.cohef[p].toFixed(3):'—'}</td>
-          <td class="cuota-td">${bruto>0&&l.cohef[p]?fmtPeso(bruto*l.cohef[p]/1000):'—'}</td>
+          <td class="cohef-td">${cohef[p]?cohef[p].toFixed(3):'—'}</td>
+          <td class="cuota-td">${bruto>0&&cohef[p]?fmtPeso(bruto*cohef[p]/1000):'—'}</td>
         </tr>`).join('')}</tbody>
       </table>
       ${l.type==='uva'?'<div class="uva-note-bar">⚠ Cuotas UVA se ajustan mensualmente por CER (inflación). Los valores son estimados iniciales.</div>':''}
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function renderLines(){
@@ -421,7 +454,7 @@ function renderPreClient(){
         </div>
         <div class="client-linea-head">
           <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:5px">Línea de crédito</div>
-          <div class="client-linea-badge badge-${l.type}">${l.sub}</div>
+          <div class="client-linea-badge badge-${l.type}">${getSub(l)}</div>
         </div>
         <div class="client-section">
           <div class="client-field">
@@ -446,7 +479,7 @@ function renderPreClient(){
         <div class="preclient-row-wrap" id="pre-${l.id}-${p}">
           <div class="client-row">
             <span class="cr-plazo">${p}</span>
-            <span class="cr-cuota">${bruto>0&&l.cohef[p]?fmtPeso(bruto*l.cohef[p]/1000):'N/D'}</span>
+            <span class="cr-cuota">${bruto>0&&getCohef(l)[p]?fmtPeso(bruto*getCohef(l)[p]/1000):'N/D'}</span>
           </div>
           <button class="del-btn" onclick="ocultarFila('${l.id}',${p})">✕</button>
         </div>`).join('')}
@@ -476,7 +509,7 @@ function renderClient(){
       </div>
       <div class="client-linea-head">
         <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:5px">Línea de crédito</div>
-        <div class="client-linea-badge badge-${l.type}">${l.sub}</div>
+        <div class="client-linea-badge badge-${l.type}">${getSub(l)}</div>
       </div>
       <div class="client-section">
         <div class="client-field">
@@ -499,7 +532,7 @@ function renderClient(){
       </div>
       ${PLAZOS.filter(p=>!plazosOcultos.has(l.id+'-'+p)).map(p=>`<div class="client-row">
         <span class="cr-plazo">${p}</span>
-        <span class="cr-cuota">${bruto>0&&l.cohef[p]?fmtPeso(bruto*l.cohef[p]/1000):'N/D'}</span>
+        <span class="cr-cuota">${bruto>0&&getCohef(l)[p]?fmtPeso(bruto*getCohef(l)[p]/1000):'N/D'}</span>
       </div>`).join('')}
     </div>`).join('');
 }
@@ -559,7 +592,7 @@ function renderCotizPreview(){
       </div>
       <div class="cq-badge-row">
         <div class="cq-badge-label">Línea de crédito</div>
-        <div class="cq-linea-badge badge-${linea.type}">${linea.sub}</div>
+        <div class="cq-linea-badge badge-${linea.type}">${getSub(linea)}</div>
       </div>
       <div class="cq-note ${linea.type}">
         ${linea.type==='uva'
@@ -619,7 +652,7 @@ function exportarExcel(){
 
   let rows = [
     ['BANCO GALICIA - COTIZACIÓN PRENDARIO'],
-    ['Línea:', linea.name + ' (' + linea.tnaLabel + ')'],
+    ['Línea:', linea.name + ' (' + getTnaLabel(linea) + ')'],
     ['Fecha:', today],
     [],
     hayMontos ? ['Plazo (meses)', 'Monto a solicitar', 'Cuota mensual ($)'] : ['Plazo (meses)', 'Cuota mensual ($)'],
