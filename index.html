@@ -354,7 +354,7 @@ const tnaState = { uvau: '34', fiju: '69' };
 
 function getCohef(l){ return l.cohefMap ? l.cohefMap[tnaState[l.id]] : l.cohef; }
 function getTnaLabel(l){ return l.cohefMap ? tnaState[l.id]+'% TNA' : l.tnaLabel; }
-function getSub(l){ return l.cohefMap ? l.sub+' '+tnaState[l.id]+'%' : l.sub; }
+function getSub(l){ return l.sub; }
 
 function setTna(lineId, tna){
   tnaState[lineId] = tna;
