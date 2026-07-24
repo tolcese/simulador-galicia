@@ -582,6 +582,8 @@ function renderCotizPreview(){
   const hayMontos = PLAZOS.some(p => montos[p] !== null);
   const cols = hayMontos ? '1fr 1fr 1fr' : '1fr 1fr';
   const filas = PLAZOS.filter(p => cuotas[p] !== null || montos[p] !== null);
+  const montoBase = parseNum(document.getElementById('cq-monto').value);
+  const tieneMontoBase = montoBase > 0;
 
   container.innerHTML = `
     <div class="cotiz-preview-card" id="cotiz-printable">
@@ -594,6 +596,17 @@ function renderCotizPreview(){
         <div class="cq-badge-label">Línea de crédito</div>
         <div class="cq-linea-badge badge-${linea.type}">${getSub(linea)}</div>
       </div>
+      ${tieneMontoBase ? `
+      <div class="cq-montos-row">
+        <div class="cq-monto-field">
+          <div class="cq-monto-label">Monto a solicitar</div>
+          <div class="cq-monto-val">${fmtPeso(montoBase)}</div>
+        </div>
+        <div class="cq-monto-field">
+          <div class="cq-monto-label">Lo que recibe el cliente</div>
+          <div class="cq-monto-val">${fmtPeso(montoBase * (1 - comision))}</div>
+        </div>
+      </div>` : ''}
       <div class="cq-note ${linea.type}">
         ${linea.type==='uva'
           ? '⚠ Las cuotas UVA se ajustan por inflación (CER). Los valores son cuotas iniciales estimadas. Plazo de 12 a 60 meses se corrobora al momento de solicitar el crédito.'
