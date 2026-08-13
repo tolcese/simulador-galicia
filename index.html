@@ -364,7 +364,16 @@ function setTna(lineId, tna){
 
 let comision = 0.06, bruto = 0;
 
-function parseNum(s){ return parseFloat((s||'').replace(/\./g,'').replace(',','.')) || 0; }
+function parseNum(s){
+  if(!s) return 0;
+  s = s.trim();
+  // Si tiene coma como separador decimal (ej: 1.234.567,89)
+  if(/,\d{1,2}$/.test(s)){
+    return parseFloat(s.replace(/\./g,'').replace(',','.')) || 0;
+  }
+  // Si solo tiene puntos como miles (ej: 1.234.567)
+  return parseFloat(s.replace(/\./g,'').replace(',','.')) || 0;
+}
 function fmtPeso(n){ return '$\u202f' + Math.round(n).toLocaleString('es-AR'); }
 function fmtMonto(inp){
   let raw = inp.value.replace(/\D/g,'');
@@ -375,8 +384,24 @@ function fmtCotizMonto(inp){
   if(raw) inp.value = parseInt(raw,10).toLocaleString('es-AR');
 }
 function fmtCuotaInput(inp){
-  let raw = inp.value.replace(/\D/g,'');
-  if(raw) inp.value = parseInt(raw,10).toLocaleString('es-AR');
+  // Acepta formato con decimales: 1.234.567,89 o 1234567.89 o 1234567,89
+  let val = inp.value.trim();
+  // Si tiene coma como decimal (ej: 1.234.567,89)
+  if(/,\d{1,2}$/.test(val)){
+    let partes = val.split(',');
+    let entero = partes[0].replace(/\D/g,'');
+    let dec = partes[1].replace(/\D/g,'').substring(0,2);
+    if(entero) inp.value = parseInt(entero,10).toLocaleString('es-AR') + ',' + dec;
+  } else if(/\.\d{1,2}$/.test(val) && (val.match(/\./g)||[]).length === 1){
+    // Punto como decimal (ej: 1234567.89)
+    let partes = val.split('.');
+    let entero = partes[0].replace(/\D/g,'');
+    let dec = partes[1].replace(/\D/g,'').substring(0,2);
+    if(entero) inp.value = parseInt(entero,10).toLocaleString('es-AR') + ',' + dec;
+  } else {
+    let raw = val.replace(/\D/g,'');
+    if(raw) inp.value = parseInt(raw,10).toLocaleString('es-AR');
+  }
 }
 
 let plazosOcultos = new Set();
