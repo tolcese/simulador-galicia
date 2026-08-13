@@ -364,8 +364,7 @@ function setTna(lineId, tna){
 
 let comision = 0.06, bruto = 0;
 
-function parseNum(s){
-  if(!s) return 0;
+function parseNum(s){  if(!s) return 0;
   s = s.trim();
   // Si tiene coma como separador decimal (ej: 1.234.567,89)
   if(/,\d{1,2}$/.test(s)){
@@ -375,6 +374,13 @@ function parseNum(s){
   return parseFloat(s.replace(/\./g,'').replace(',','.')) || 0;
 }
 function fmtPeso(n){ return '$\u202f' + Math.round(n).toLocaleString('es-AR'); }
+function fmtPesoDecimal(n){
+  if(!n && n!==0) return '—';
+  const parts = n.toFixed(2).split('.');
+  const entero = parseInt(parts[0]).toLocaleString('es-AR');
+  const dec = parts[1];
+  return '$\u202f' + entero + ',' + dec;
+}
 function fmtMonto(inp){
   let raw = inp.value.replace(/\D/g,'');
   if(raw) inp.value = parseInt(raw,10).toLocaleString('es-AR');
@@ -646,8 +652,8 @@ function renderCotizPreview(){
       ${filas.map(p=>`
       <div class="cq-row" style="grid-template-columns:${cols}">
         <span class="cq-plazo">${p} meses</span>
-        ${hayMontos ? `<span class="cq-cuota-val">${montos[p]?fmtPeso(montos[p]):'—'}</span>` : ''}
-        <span class="${cuotas[p]?'cq-cuota-val':'cq-cuota-val empty'}">${cuotas[p]?fmtPeso(cuotas[p]):'—'}</span>
+        ${hayMontos ? `<span class="cq-cuota-val">${montos[p]?fmtPesoDecimal(montos[p]):'—'}</span>` : ''}
+        <span class="${cuotas[p]?'cq-cuota-val':'cq-cuota-val empty'}">${cuotas[p]?fmtPesoDecimal(cuotas[p]):'—'}</span>
       </div>`).join('')}
       <div class="cq-footer">
         <div class="cq-footer-text">Valores orientativos. Sujeto a aprobación crediticia. Simulador Galicia Prendarios.</div>
