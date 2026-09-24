@@ -611,53 +611,36 @@ function renderCotizPreview(){
   container.style.display = 'block';
 
   const today = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const hayMontos = PLAZOS.some(p => montos[p] !== null);
-  const cols = hayMontos ? '1fr 1fr 1fr' : '1fr 1fr';
   const filas = PLAZOS.filter(p => cuotas[p] !== null || montos[p] !== null);
-  const montoBase = parseNum(document.getElementById('cq-monto').value);
-  const tieneMontoBase = montoBase > 0;
 
   container.innerHTML = `
-    <div class="cotiz-preview-card" id="cotiz-printable">
-      <div class="cq-header">
-        <div class="cq-header-date">${today}</div>
-        <div class="cq-bank-logo">BANCO GALICIA</div>
-        <div class="cq-bank-sub">COTIZACIÓN</div>
-      </div>
-      <div class="cq-badge-row">
-        <div class="cq-badge-label">Línea de crédito</div>
-        <div class="cq-linea-badge badge-${linea.type}">${getSub(linea)}</div>
-      </div>
-      ${tieneMontoBase ? `
-      <div class="cq-montos-row">
-        <div class="cq-monto-field">
-          <div class="cq-monto-label">Monto a solicitar</div>
-          <div class="cq-monto-val">${fmtPeso(montoBase)}</div>
-        </div>
-        <div class="cq-monto-field">
-          <div class="cq-monto-label">Lo que recibe el cliente</div>
-          <div class="cq-monto-val">${fmtPeso(montoBase * (1 - comision))}</div>
-        </div>
-      </div>` : ''}
-      <div class="cq-note ${linea.type}">
-        ${linea.type==='uva'
-          ? '⚠ Las cuotas UVA se ajustan por inflación (CER). Los valores son cuotas iniciales estimadas. Plazo de 12 a 60 meses se corrobora al momento de solicitar el crédito.'
-          : 'Plazo de 12 a 60 meses se corrobora al momento de solicitar el crédito la disponibilidad máxima del cliente determinado por valor cuota e ingresos.'}
-      </div>
-      <div class="cq-table-head" style="grid-template-columns:${cols}">
-        <span>PLAZO</span>
-        ${hayMontos ? '<span>MONTO A SOLICITAR</span>' : ''}
-        <span>${linea.type==='uva'?'CUOTA INICIAL EST.':'MONTO CUOTA APROX.'}</span>
-      </div>
+    <div id="cotiz-printable" style="display:flex;flex-direction:column;gap:12px">
       ${filas.map(p=>`
-      <div class="cq-row" style="grid-template-columns:${cols}">
-        <span class="cq-plazo">${p} meses</span>
-        ${hayMontos ? `<span class="cq-cuota-val">${montos[p]?fmtPesoDecimal(montos[p]):'—'}</span>` : ''}
-        <span class="${cuotas[p]?'cq-cuota-val':'cq-cuota-val empty'}">${cuotas[p]?fmtPesoDecimal(cuotas[p]):'—'}</span>
+      <div style="background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.13);overflow:hidden;max-width:420px">
+        <div style="background:#F05A00;padding:10px 16px;display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:.06em">${p} MESES</div>
+            <div style="font-size:9px;color:rgba(255,255,255,.7);font-weight:600;letter-spacing:.05em">${getSub(linea)}</div>
+          </div>
+          <div style="font-size:9px;color:rgba(255,255,255,.5)">${today}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:${montos[p]?'1fr 1fr 1fr':'1fr'}">
+          ${montos[p]?`
+          <div style="padding:10px 14px;border-right:1px solid #eee">
+            <div style="font-size:8px;font-weight:700;color:#aaa;letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px">Monto a solicitar</div>
+            <div style="font-size:13px;font-weight:800;font-family:'Courier New',monospace;color:#1a1a2e">${fmtPeso(montos[p])}</div>
+          </div>
+          <div style="padding:10px 14px;border-right:1px solid #eee">
+            <div style="font-size:8px;font-weight:700;color:#aaa;letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px">Lo que recibe</div>
+            <div style="font-size:13px;font-weight:800;font-family:'Courier New',monospace;color:#1a1a2e">${fmtPeso(montos[p]*(1-comision))}</div>
+          </div>`:''}
+          <div style="padding:10px 14px">
+            <div style="font-size:8px;font-weight:700;color:#aaa;letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px">${linea.type==='uva'?'Cuota inicial est.':'Cuota mensual'}</div>
+            <div style="font-size:15px;font-weight:800;font-family:'Courier New',monospace;color:#1565C0">${cuotas[p]?fmtPesoDecimal(cuotas[p]):'—'}</div>
+          </div>
+        </div>
+        ${linea.type==='uva'?`<div style="padding:4px 14px;background:#fff8e1;font-size:8px;color:#b86e00;font-style:italic">⚠ Cuota inicial estimada. Se ajusta por inflación (CER).</div>`:''}
       </div>`).join('')}
-      <div class="cq-footer">
-        <div class="cq-footer-text">Valores orientativos. Sujeto a aprobación crediticia. Simulador Galicia Prendarios.</div>
-      </div>
     </div>
   `;
 }
